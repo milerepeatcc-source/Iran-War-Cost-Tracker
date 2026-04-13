@@ -4,6 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Comprehensive Cost & Tax Tracker</title>
+
+<script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister unregister_for_session getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep identify setPersonProperties group reset groups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags resetGroups set_config opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing session_recording.disable session_recording.enable".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    
+    // POSTHOG INITIALIZATION WITH PRIVACY SETTINGS
+    posthog.init('phc_oitdFhYRjLqGn9jBPEgQLcwrvrZaQUBDykDnoNA2ct37', {
+        api_host: 'https://us.i.posthog.com', // or eu.i.posthog.com depending on your setup
+        person_profiles: 'always', 
+        ip: false // PRIVACY UPGRADE: Disables IP address collection entirely
+    })
+</script>
 <style>
   body { 
     font-family: 'Helvetica Neue', Arial, sans-serif; 
@@ -256,23 +267,15 @@
 
   <div class="dashboard-grid">
     <div class="cost-card tax-card">
-      <div class="cost-card-title">
-        Direct Tax Burden
-      </div>
+      <div class="cost-card-title">Direct Tax Burden</div>
       <div class="cost-card-value tax-val" id="taxCostDisplay">$0.00</div>
-      <div class="cost-card-desc">
-        Your personal share of the federal budget allocated to operations.
-      </div>
+      <div class="cost-card-desc">Your personal share of the federal budget allocated to operations.</div>
     </div>
 
     <div class="cost-card gas-card">
-      <div class="cost-card-title">
-        Added Gas Cost (Avg)
-      </div>
+      <div class="cost-card-title">Added Gas Cost (Avg)</div>
       <div class="cost-card-value gas-val" id="householdGasDisplay">$0.00</div>
-      <div class="cost-card-desc">
-        The average indirect cost paid out-of-pocket per U.S. household at the pump.
-      </div>
+      <div class="cost-card-desc">The average indirect cost paid out-of-pocket per U.S. household at the pump.</div>
     </div>
   </div>
 
@@ -283,7 +286,8 @@
   </div>
 
   <div class="disclaimer">
-    <strong>Methodology:</strong> Federal tax burden is calculated dynamically by computing your actual 2025 estimated tax against your proportion of the $6.5T federal budget. Gas costs reflect independent economic data from the Watson Institute, capturing actual energy market shock premiums paid by American households.
+    <strong>Methodology:</strong> Federal tax burden is calculated dynamically by computing your actual 2025 estimated tax against your proportion of the $6.5T federal budget. Gas costs reflect independent economic data from the Watson Institute.<br><br>
+    <strong>Privacy:</strong> This tool is completely anonymous. We track general, anonymized usage trends to see how the tool is performing, but we do not collect your IP address or personal identity. All income inputs are rounded into broad statistical brackets before being logged.
   </div>
 </div>
 
@@ -293,7 +297,7 @@
   const baseCost = 49716729166; 
   const costPerSecond = 11574;  
   
-  // --- GASOLINE PREMIUM ESTIMATES (Watson Institute Data) ---
+  // --- GASOLINE PREMIUM ESTIMATES ---
   const gasBaseDate = new Date("2026-04-11T00:00:00-04:00").getTime();
   const gasMacroBase = 17631903884; 
   const gasMacroPerSecond = 4849;   
@@ -365,36 +369,54 @@
     const macroGasCost = gasMacroBase + (elapsedSecondsGas * gasMacroPerSecond);
     const householdGasCost = gasHouseholdBase + (elapsedSecondsGas * gasHouseholdPerSecond);
     
-    // 1. Update Federal Ticker
-    document.getElementById('liveCostDisplay').innerText = 
-      "$" + liveCost.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+    // Update Tickers
+    document.getElementById('liveCostDisplay').innerText = "$" + liveCost.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
       
-    // 2. Fetch AGI & Filing Status to Calculate Personal Tax Contribution
     const agi = parseFloat(document.getElementById('agiInput').value) || 0;
     const filingStatus = document.getElementById('filingStatus').value;
     
     const actualEstimatedTax = calculateProgressiveTax(agi, filingStatus);
     const personalTaxCost = (liveCost / usFederalBudget) * actualEstimatedTax;
-    
-    // 3. Calculate Total Personal Impact
     const totalPersonalCost = personalTaxCost + householdGasCost;
     
-    // 4. Update the DOM displays
-    document.getElementById('taxCostDisplay').innerText = 
-      "$" + personalTaxCost.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4});
-      
-    document.getElementById('householdGasDisplay').innerText = 
-      "$" + householdGasCost.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4});
-      
-    document.getElementById('macroGasDisplay').innerText = 
-      "$" + macroGasCost.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
-      
-    document.getElementById('totalPersonalDisplay').innerText = 
-      "$" + totalPersonalCost.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4});
+    document.getElementById('taxCostDisplay').innerText = "$" + personalTaxCost.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4});
+    document.getElementById('householdGasDisplay').innerText = "$" + householdGasCost.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4});
+    document.getElementById('macroGasDisplay').innerText = "$" + macroGasCost.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+    document.getElementById('totalPersonalDisplay').innerText = "$" + totalPersonalCost.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4});
   }
 
-  // Update the DOM every 50 milliseconds
   setInterval(updateTickers, 50);
+
+  // --- POSTHOG PRIVACY & EVENT TRACKING ---
+  
+  // 1. Helper function to round AGI into broad, anonymous brackets
+  function bucketAGI(agi) {
+      if (agi <= 0) return "$0";
+      if (agi < 25000) return "Under $25k";
+      if (agi < 50000) return "$25k - $50k";
+      if (agi < 75000) return "$50k - $75k";
+      if (agi < 100000) return "$75k - $100k";
+      if (agi < 150000) return "$100k - $150k";
+      if (agi < 200000) return "$150k - $200k";
+      if (agi < 300000) return "$200k - $300k";
+      if (agi < 500000) return "$300k - $500k";
+      return "Over $500k";
+  }
+
+  // 2. Event listener that only fires when the user clicks away from the input (blur/change event)
+  document.getElementById('agiInput').addEventListener('change', function(e) {
+      const agi = parseFloat(e.target.value) || 0;
+      const filingStatus = document.getElementById('filingStatus').value;
+      
+      // Only send data to PostHog if it's a real number and PostHog is loaded
+      if (agi > 0 && typeof posthog !== 'undefined') {
+          posthog.capture('calculated_tax_impact', {
+              filing_status: filingStatus,
+              agi_bracket: bucketAGI(agi)
+          });
+      }
+  });
+
 </script>
 </body>
 </html>
