@@ -6,12 +6,13 @@
 <title>Comprehensive Cost & Tax Tracker</title>
 
 <script>
-    !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister unregister_for_session getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep identify setPersonProperties group reset groups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags resetGroups set_config opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing session_recording.disable session_recording.enable".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog && window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="Ii init Di qi Sr Bi Zi Pi capture calculateEventProperties Yi register register_once register_for_session unregister unregister_for_session Xi getFeatureFlag getFeatureFlagPayload getFeatureFlagResult isFeatureEnabled reloadFeatureFlags updateFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey displaySurvey cancelPendingSurvey canRenderSurvey canRenderSurveyAsync Ji identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset setIdentity clearIdentity get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException startExceptionAutocapture stopExceptionAutocapture loadToolbar get_property getSessionProperty Wi Vi createPersonProfile setInternalOrTestUser Gi Fi tn opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing get_explicit_consent_status is_capturing clear_opt_in_out_capturing $i debug Tr Ui getPageViewId captureTraceFeedback captureTraceMetric Ri".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
     
     // POSTHOG INITIALIZATION WITH PRIVACY SETTINGS
     posthog.init('phc_oitdFhYRjLqGn9jBPEgQLcwrvrZaQUBDykDnoNA2ct37', {
-        api_host: 'https://us.i.posthog.com', 
-        person_profiles: 'always', 
+        api_host: 'https://us.i.posthog.com',
+        defaults: '2026-01-30',
+        person_profiles: 'identified_only', // Better for anonymity
         ip: false // PRIVACY UPGRADE: Disables IP address collection entirely
     })
 </script>
@@ -151,7 +152,7 @@
     outline: none;
   }
   
-  /* NEW BUTTON STYLES */
+  /* SUBMIT BUTTON STYLES */
   .submit-btn {
     width: 100%;
     padding: 14px;
@@ -314,7 +315,6 @@
 
 <script>
   // --- STATE VARIABLES FOR SUBMISSION ---
-  // These only update when the user clicks "Calculate"
   let activeAgi = 0;
   let activeFilingStatus = 'single';
 
@@ -360,7 +360,6 @@
     }
   };
 
-  // Function to calculate exact progressive tax
   function calculateProgressiveTax(agi, filingStatus) {
     if (agi <= 0) return 0;
     
@@ -386,7 +385,7 @@
   function updateTickers() {
     const now = new Date().getTime();
     
-    // Federal Spending & Macro Gas Calcs (Always rolling)
+    // Federal Spending & Macro Gas Calcs
     const elapsedSecondsFed = (now - baseDate) / 1000;
     const liveCost = baseCost + (elapsedSecondsFed * costPerSecond);
     
@@ -397,7 +396,6 @@
     document.getElementById('liveCostDisplay').innerText = "$" + liveCost.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
     document.getElementById('macroGasDisplay').innerText = "$" + macroGasCost.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
       
-    // Personal Calcs (Only roll if activeAgi > 0, set via the button)
     let personalTaxCost = 0;
     let householdGasCost = 0;
     let totalPersonalCost = 0;
@@ -419,7 +417,6 @@
 
   // --- POSTHOG PRIVACY & EVENT TRACKING ---
   
-  // Helper function to round AGI into broad, anonymous brackets
   function bucketAGI(agi) {
       if (agi <= 0) return "$0";
       if (agi < 25000) return "Under $25k";
@@ -435,11 +432,9 @@
 
   // BUTTON CLICK EVENT LISTENER
   document.getElementById('calculateBtn').addEventListener('click', function() {
-      // 1. Capture the input values into the active variables
       activeAgi = parseFloat(document.getElementById('agiInput').value) || 0;
       activeFilingStatus = document.getElementById('filingStatus').value;
       
-      // 2. If valid, send the anonymized event to PostHog
       if (activeAgi > 0 && typeof posthog !== 'undefined') {
           posthog.capture('calculated_tax_impact', {
               filing_status: activeFilingStatus,
@@ -447,7 +442,6 @@
           });
       }
       
-      // If they didn't enter a valid number, gently remind them
       if (activeAgi <= 0) {
           alert("Please enter a valid Adjusted Gross Income.");
       }
