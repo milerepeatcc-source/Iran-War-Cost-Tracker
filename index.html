@@ -109,6 +109,22 @@
     font-size: 18px;
     left: 15px;
   }
+  select {
+    width: 100%; 
+    padding: 12px 15px; 
+    border: 1px solid #555; 
+    background-color: #121212;
+    color: #fff;
+    border-radius: 6px; 
+    box-sizing: border-box; 
+    font-size: 15px;
+    margin-bottom: 15px;
+    cursor: pointer;
+  }
+  select:focus {
+    border-color: #ff4d4d;
+    outline: none;
+  }
   input[type="number"] { 
     width: 100%; 
     padding: 12px 15px 12px 35px; 
@@ -223,9 +239,18 @@
   
   <div class="input-section">
     <label for="agiInput">Calculate your direct burden based on AGI:</label>
+    
+    <select id="filingStatus">
+      <option value="single">Single Filer</option>
+      <option value="joint">Married Filing Jointly</option>
+    </select>
+
     <div class="input-wrapper">
       <span class="currency-symbol">$</span>
-      <input type="number" id="agiInput" placeholder="e.g., 75000" min="0">
+      <input type="number" id="agiInput" placeholder="Enter AGI (e.g., 75000)" min="0">
+    </div>
+    <div style="font-size: 11px; color: #888; margin-top: 10px;">
+      *Tax calculations run using official 2025 IRS progressive tax brackets and standard deductions.
     </div>
   </div>
 
@@ -258,32 +283,75 @@
   </div>
 
   <div class="disclaimer">
-    <strong>Methodology:</strong> Tax costs are calculated dynamically based on your AGI's proportion of the $6.5T federal budget. Gas costs reflect independent economic data from the Watson Institute, capturing actual energy market shock premiums paid by American households.
+    <strong>Methodology:</strong> Federal tax burden is calculated dynamically by computing your actual 2025 estimated tax against your proportion of the $6.5T federal budget. Gas costs reflect independent economic data from the Watson Institute, capturing actual energy market shock premiums paid by American households.
   </div>
 </div>
 
 <script>
   // --- FEDERAL SPENDING TICKER ---
-  // Base timestamp set to April 13, 2026 at 10:00:00 AM EDT
   const baseDate = new Date("2026-04-13T10:00:00-04:00").getTime();
-  const baseCost = 49716729166; // Live ticker base value
+  const baseCost = 49716729166; 
   const costPerSecond = 11574;  
   
   // --- GASOLINE PREMIUM ESTIMATES (Watson Institute Data) ---
-  // Base timestamp for gas data set to April 11, 2026 at 12:00:00 AM EDT
   const gasBaseDate = new Date("2026-04-11T00:00:00-04:00").getTime();
+  const gasMacroBase = 17631903884; 
+  const gasMacroPerSecond = 4849;   
+  const gasHouseholdBase = 134.59; 
+  const gasHouseholdPerSecond = 0.000037; 
   
-  // Total Macro Fuel Burden
-  const gasMacroBase = 17631903884; // $17.6 Billion as of April 11
-  const gasMacroPerSecond = 4849;   // roughly $419 Million a day / 86400
-  
-  // Household Average Fuel Burden
-  const gasHouseholdBase = 134.59; // $134.59 per household as of April 11
-  const gasHouseholdPerSecond = 0.000037; // roughly $3.20 a day / 86400
-  
-  // Tax variables
   const usFederalBudget = 6500000000000; 
-  const effectiveTaxRate = 0.12; 
+
+  // --- 2025 IRS TAX BRACKET DATA ---
+  const taxBrackets2025 = {
+    single: {
+      standardDeduction: 15750,
+      brackets: [
+        { rate: 0.10, max: 11925 },
+        { rate: 0.12, max: 48475 },
+        { rate: 0.22, max: 103350 },
+        { rate: 0.24, max: 197300 },
+        { rate: 0.32, max: 250525 },
+        { rate: 0.35, max: 626350 },
+        { rate: 0.37, max: Infinity }
+      ]
+    },
+    joint: {
+      standardDeduction: 31500,
+      brackets: [
+        { rate: 0.10, max: 23850 },
+        { rate: 0.12, max: 96950 },
+        { rate: 0.22, max: 206700 },
+        { rate: 0.24, max: 394600 },
+        { rate: 0.32, max: 501050 },
+        { rate: 0.35, max: 751600 },
+        { rate: 0.37, max: Infinity }
+      ]
+    }
+  };
+
+  // Function to calculate exact progressive tax
+  function calculateProgressiveTax(agi, filingStatus) {
+    if (agi <= 0) return 0;
+    
+    const taxInfo = taxBrackets2025[filingStatus];
+    let taxableIncome = Math.max(0, agi - taxInfo.standardDeduction);
+    
+    let totalTax = 0;
+    let previousMax = 0;
+    
+    for (let i = 0; i < taxInfo.brackets.length; i++) {
+      let bracket = taxInfo.brackets[i];
+      if (taxableIncome > previousMax) {
+        let incomeInThisBracket = Math.min(taxableIncome - previousMax, bracket.max - previousMax);
+        totalTax += incomeInThisBracket * bracket.rate;
+        previousMax = bracket.max;
+      } else {
+        break; 
+      }
+    }
+    return totalTax;
+  }
 
   function updateTickers() {
     const now = new Date().getTime();
@@ -301,10 +369,12 @@
     document.getElementById('liveCostDisplay').innerText = 
       "$" + liveCost.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
       
-    // 2. Fetch AGI and Update Personal Tax Contribution
+    // 2. Fetch AGI & Filing Status to Calculate Personal Tax Contribution
     const agi = parseFloat(document.getElementById('agiInput').value) || 0;
-    const estimatedTax = agi * effectiveTaxRate;
-    const personalTaxCost = (liveCost / usFederalBudget) * estimatedTax;
+    const filingStatus = document.getElementById('filingStatus').value;
+    
+    const actualEstimatedTax = calculateProgressiveTax(agi, filingStatus);
+    const personalTaxCost = (liveCost / usFederalBudget) * actualEstimatedTax;
     
     // 3. Calculate Total Personal Impact
     const totalPersonalCost = personalTaxCost + householdGasCost;
