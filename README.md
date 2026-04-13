@@ -1,5 +1,3 @@
-# Iran-War-Cost-Tracker
-
 # Comprehensive Cost & Tax Tracker 🇺🇸
 
 A lightweight, standalone web widget that calculates the live personal financial impact of U.S. federal spending and macroeconomic energy shocks. 
@@ -10,7 +8,7 @@ This project was built to provide transparency on how geopolitical events—spec
 
 * **Live Federal Spending Ticker:** Tracks the estimated total U.S. taxpayer spending in real-time.
 * **Live Macro Fuel Burden Ticker:** Displays the cumulative billions of dollars in added fuel costs shouldered by the U.S. economy.
-* **Personal AGI Calculator:** Users can input their Adjusted Gross Income (AGI) to calculate their specific, dynamic share of the federal budget allocated to these operations.
+* **Progressive Tax Engine:** Users input their Adjusted Gross Income (AGI) and Filing Status (Single or Jointly). The app runs this through the official 2025 IRS progressive tax brackets to calculate their highly specific share of the federal budget.
 * **Household Gas Premium:** Calculates the rolling average out-of-pocket cost paid per U.S. household at the pump due to global oil supply disruptions.
 * **Total Personal Impact:** A unified dashboard that sums the user's direct tax burden and indirect household gas premium into one real-time personal cost.
 * **Zero Dependencies:** 100% vanilla HTML, CSS, and JavaScript. No backend, no databases, no external libraries.
@@ -33,6 +31,7 @@ This project was built iteratively using an AI-assisted development workflow. He
 * **v2 - Going Live:** Added JavaScript `setInterval` logic to create rolling tickers. The math was updated to calculate a user's micro-percentage of the overall $6.5 Trillion U.S. Federal Budget against the live spending rate.
 * **v3 - Adding Macroeconomic Data:** Integrated research from Brown University's Watson Institute to account for indirect economic costs (gas premiums). Initial versions included user inputs for weekly gas consumption, which was later refined to display exact household averages to reduce user friction.
 * **v4 - The Unified Dashboard:** Redesigned the UI/UX to clearly separate **Direct Tax Burden** from **Indirect Gas Costs**. Moved national macroeconomic data to the top and added a bottom-line **Total Estimated Personal Impact** section that sums both metrics dynamically.
+* **v5 - Progressive Tax Brackets:** Completely replaced the initial flat 12% tax estimate with a dynamic script utilizing official 2025 IRS progressive tax brackets and standard deductions. Added a filing status selector for pinpoint accuracy.
 
 ## 📊 Data Sources & Methodology
 
@@ -40,7 +39,7 @@ Proper credit and attribution for the data models used in this calculator belong
 
 * **Federal Spending Data:** Baseline spending estimates and ticker methodology are sourced from [Iran Cost Ticker](https://iran-cost-ticker.com/).
 * **Gas & Macroeconomic Data:** Fuel burden estimates, household averages, and macroeconomic inflation data are sourced from the [Costs of War Project at Brown University's Watson Institute](https://iranwarcost.watson.brown.edu/). 
-* **Tax Calculation:** Personal tax burden is estimated using an assumed 12% effective federal tax rate to convert AGI into total federal taxes paid, which is then measured against a $6.5 Trillion U.S. Federal Budget benchmark.
+* **Tax Calculation:** Personal tax burden is calculated dynamically by running the user's AGI and filing status through the official 2025 IRS standard deductions and progressive marginal tax brackets. This estimated total tax is then measured against a $6.5 Trillion U.S. Federal Budget benchmark.
 
 ## 🤖 AI Disclosure
 
@@ -48,4 +47,4 @@ The code, UI design, and mathematical scripting for this project were generated 
 
 ## ⚠️ Disclaimer
 
-This tool is for **educational and informational purposes only**. The figures presented are estimates based on macroeconomic models, historical federal budget ratios, and assumed effective tax rates. It does not represent exact financial advice or exact IRS tax routing. 
+This tool is for **educational and informational purposes only**. The figures presented are estimates based on macroeconomic models, historical federal budget ratios, and estimated bracket scaling. It does not represent exact financial advice or exact IRS tax routing. 
