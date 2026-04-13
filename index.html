@@ -10,7 +10,7 @@
     
     // POSTHOG INITIALIZATION WITH PRIVACY SETTINGS
     posthog.init('phc_oitdFhYRjLqGn9jBPEgQLcwrvrZaQUBDykDnoNA2ct37', {
-        api_host: 'https://us.i.posthog.com', // or eu.i.posthog.com depending on your setup
+        api_host: 'https://us.i.posthog.com', 
         person_profiles: 'always', 
         ip: false // PRIVACY UPGRADE: Disables IP address collection entirely
     })
@@ -151,6 +151,24 @@
     outline: none;
   }
   
+  /* NEW BUTTON STYLES */
+  .submit-btn {
+    width: 100%;
+    padding: 14px;
+    background-color: #ff4d4d;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 15px;
+    transition: background-color 0.2s ease;
+  }
+  .submit-btn:hover {
+    background-color: #e60000;
+  }
+  
   .dashboard-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -260,7 +278,10 @@
       <span class="currency-symbol">$</span>
       <input type="number" id="agiInput" placeholder="Enter AGI (e.g., 75000)" min="0">
     </div>
-    <div style="font-size: 11px; color: #888; margin-top: 10px;">
+    
+    <button id="calculateBtn" class="submit-btn">Calculate My Impact</button>
+
+    <div style="font-size: 11px; color: #888; margin-top: 15px;">
       *Tax calculations run using official 2025 IRS progressive tax brackets and standard deductions.
     </div>
   </div>
@@ -292,6 +313,11 @@
 </div>
 
 <script>
+  // --- STATE VARIABLES FOR SUBMISSION ---
+  // These only update when the user clicks "Calculate"
+  let activeAgi = 0;
+  let activeFilingStatus = 'single';
+
   // --- FEDERAL SPENDING TICKER ---
   const baseDate = new Date("2026-04-13T10:00:00-04:00").getTime();
   const baseCost = 49716729166; 
@@ -360,28 +386,32 @@
   function updateTickers() {
     const now = new Date().getTime();
     
-    // Federal Spending Calc
+    // Federal Spending & Macro Gas Calcs (Always rolling)
     const elapsedSecondsFed = (now - baseDate) / 1000;
     const liveCost = baseCost + (elapsedSecondsFed * costPerSecond);
     
-    // Gas Burden Calcs
     const elapsedSecondsGas = (now - gasBaseDate) / 1000;
     const macroGasCost = gasMacroBase + (elapsedSecondsGas * gasMacroPerSecond);
-    const householdGasCost = gasHouseholdBase + (elapsedSecondsGas * gasHouseholdPerSecond);
     
-    // Update Tickers
+    // Update Master Tickers
     document.getElementById('liveCostDisplay').innerText = "$" + liveCost.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+    document.getElementById('macroGasDisplay').innerText = "$" + macroGasCost.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
       
-    const agi = parseFloat(document.getElementById('agiInput').value) || 0;
-    const filingStatus = document.getElementById('filingStatus').value;
+    // Personal Calcs (Only roll if activeAgi > 0, set via the button)
+    let personalTaxCost = 0;
+    let householdGasCost = 0;
+    let totalPersonalCost = 0;
+
+    if (activeAgi > 0) {
+      const actualEstimatedTax = calculateProgressiveTax(activeAgi, activeFilingStatus);
+      personalTaxCost = (liveCost / usFederalBudget) * actualEstimatedTax;
+      householdGasCost = gasHouseholdBase + (elapsedSecondsGas * gasHouseholdPerSecond);
+      totalPersonalCost = personalTaxCost + householdGasCost;
+    }
     
-    const actualEstimatedTax = calculateProgressiveTax(agi, filingStatus);
-    const personalTaxCost = (liveCost / usFederalBudget) * actualEstimatedTax;
-    const totalPersonalCost = personalTaxCost + householdGasCost;
-    
+    // Update Personal Tickers
     document.getElementById('taxCostDisplay').innerText = "$" + personalTaxCost.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4});
     document.getElementById('householdGasDisplay').innerText = "$" + householdGasCost.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4});
-    document.getElementById('macroGasDisplay').innerText = "$" + macroGasCost.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
     document.getElementById('totalPersonalDisplay').innerText = "$" + totalPersonalCost.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4});
   }
 
@@ -389,7 +419,7 @@
 
   // --- POSTHOG PRIVACY & EVENT TRACKING ---
   
-  // 1. Helper function to round AGI into broad, anonymous brackets
+  // Helper function to round AGI into broad, anonymous brackets
   function bucketAGI(agi) {
       if (agi <= 0) return "$0";
       if (agi < 25000) return "Under $25k";
@@ -403,17 +433,23 @@
       return "Over $500k";
   }
 
-  // 2. Event listener that only fires when the user clicks away from the input (blur/change event)
-  document.getElementById('agiInput').addEventListener('change', function(e) {
-      const agi = parseFloat(e.target.value) || 0;
-      const filingStatus = document.getElementById('filingStatus').value;
+  // BUTTON CLICK EVENT LISTENER
+  document.getElementById('calculateBtn').addEventListener('click', function() {
+      // 1. Capture the input values into the active variables
+      activeAgi = parseFloat(document.getElementById('agiInput').value) || 0;
+      activeFilingStatus = document.getElementById('filingStatus').value;
       
-      // Only send data to PostHog if it's a real number and PostHog is loaded
-      if (agi > 0 && typeof posthog !== 'undefined') {
+      // 2. If valid, send the anonymized event to PostHog
+      if (activeAgi > 0 && typeof posthog !== 'undefined') {
           posthog.capture('calculated_tax_impact', {
-              filing_status: filingStatus,
-              agi_bracket: bucketAGI(agi)
+              filing_status: activeFilingStatus,
+              agi_bracket: bucketAGI(activeAgi)
           });
+      }
+      
+      // If they didn't enter a valid number, gently remind them
+      if (activeAgi <= 0) {
+          alert("Please enter a valid Adjusted Gross Income.");
       }
   });
 
