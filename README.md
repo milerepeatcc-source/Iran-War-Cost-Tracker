@@ -11,6 +11,7 @@ This project was built to provide transparency on how geopolitical events—spec
 * **Progressive Tax Engine:** Users input their Adjusted Gross Income (AGI) and Filing Status (Single or Jointly). The app runs this through the official 2025 IRS progressive tax brackets to calculate their highly specific share of the federal budget.
 * **Household Gas Premium:** Calculates the rolling average out-of-pocket cost paid per U.S. household at the pump due to global oil supply disruptions.
 * **Total Personal Impact:** A unified dashboard that sums the user's direct tax burden and indirect household gas premium into one real-time personal cost.
+* **Privacy-First Analytics:** Integrated PostHog tracking to monitor tool usage while strictly protecting user privacy through automated IP dropping and input bucketing.
 * **Zero Dependencies:** 100% vanilla HTML, CSS, and JavaScript. No backend, no databases, no external libraries.
 
 ## 🚀 How to Use / Hosting
@@ -29,9 +30,10 @@ This project was built iteratively using an AI-assisted development workflow. He
 
 * **v1 - The Baseline:** The project started as a request to build a static tax receipt calculator inspired by `represent.us`, mapping personal taxes to the `iran-cost-ticker.com` data.
 * **v2 - Going Live:** Added JavaScript `setInterval` logic to create rolling tickers. The math was updated to calculate a user's micro-percentage of the overall $6.5 Trillion U.S. Federal Budget against the live spending rate.
-* **v3 - Adding Macroeconomic Data:** Integrated research from Brown University's Watson Institute to account for indirect economic costs (gas premiums). Initial versions included user inputs for weekly gas consumption, which was later refined to display exact household averages to reduce user friction.
-* **v4 - The Unified Dashboard:** Redesigned the UI/UX to clearly separate **Direct Tax Burden** from **Indirect Gas Costs**. Moved national macroeconomic data to the top and added a bottom-line **Total Estimated Personal Impact** section that sums both metrics dynamically.
+* **v3 - Adding Macroeconomic Data:** Integrated research from Brown University's Watson Institute to account for indirect economic costs (gas premiums). 
+* **v4 - The Unified Dashboard:** Redesigned the UI/UX to clearly separate **Direct Tax Burden** from **Indirect Gas Costs**. Moved national macroeconomic data to the top and added a bottom-line **Total Estimated Personal Impact** section.
 * **v5 - Progressive Tax Brackets:** Completely replaced the initial flat 12% tax estimate with a dynamic script utilizing official 2025 IRS progressive tax brackets and standard deductions. Added a filing status selector for pinpoint accuracy.
+* **v6 - Privacy-First Analytics:** Integrated PostHog analytics to track general usage trends. Implemented strict privacy controls by completely disabling IP address collection and writing an algorithm to round exact AGI inputs into broad statistical brackets before any data is sent to the analytics server.
 
 ## 📊 Data Sources & Methodology
 
@@ -45,6 +47,7 @@ Proper credit and attribution for the data models used in this calculator belong
 
 The code, UI design, and mathematical scripting for this project were generated collaboratively using **Google's Gemini** Large Language Model. The AI was prompted to structure the math, write the vanilla HTML/CSS/JS, and design the responsive layout based on publicly available ticker methodologies.
 
-## ⚠️ Disclaimer
+## ⚠️ Disclaimer & Privacy Policy
 
-This tool is for **educational and informational purposes only**. The figures presented are estimates based on macroeconomic models, historical federal budget ratios, and estimated bracket scaling. It does not represent exact financial advice or exact IRS tax routing. 
+* **Methodology:** This tool is for educational and informational purposes only. The figures presented are estimates based on macroeconomic models, historical federal budget ratios, and estimated bracket scaling. It does not represent exact financial advice or exact IRS tax routing. 
+* **Privacy:** This tool is completely anonymous. We track general, anonymized usage trends to see how the tool is performing, but we **do not collect your IP address or personal identity**. All income inputs are rounded into broad statistical brackets (e.g., "$50k - $75k") before being logged.
